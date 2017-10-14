@@ -15,7 +15,7 @@ int step(int a, int b, float p, particle *part){
 	//для имитации выбора с вероятностью p будем выбирать рандомно числа до RAND_MAX и если число лежит
 	//в первых p*RAND_MAX, то выбираем ход направо
 
-	int rand_number = rand_r();
+	int rand_number = rand();
 
 	//выбираем шаг направо
 	if(rand_number < p * RAND_MAX) {
