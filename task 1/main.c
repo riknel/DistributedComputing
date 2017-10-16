@@ -11,39 +11,40 @@ typedef struct {
 	int is_end;
 }particle;
 
-int step(int a, int b, float p, particle *part){
+typedef unsigned int uint;
+omp_lock_t lock;
+
+int step(int a, int b, float p, particle *part, uint seed){
 	//для имитации выбора с вероятностью p будем выбирать рандомно числа до RAND_MAX и если число лежит
 	//в первых p*RAND_MAX, то выбираем ход направо
 
-	int rand_number = rand();
+	while(!part->is_end){
+		//выбираем шаг направо
+		if(((double) rand_r(&seed)) <=  (double) RAND_MAX * p) {
+			part->cur_x++;
+		}
+		//налево
+		else{
+			part->cur_x--;
+		}
+		part->timer++;
 
-	//выбираем шаг направо
-	if(rand_number < p * RAND_MAX) {
-		part->cur_x++;
-	}
-	//налево
-	else{
-		part->cur_x--;
-	}
-	part->timer++;
-
-	//если дошли до завершающих состояний, возвращаем 1, если дошли до а, 2, если дошли до b
-	if(part->cur_x == a){
-		part->is_end = 1;
-		return 1;
-	}
-	if(part->cur_x == b){
-		part->is_end = 1;
-		return 2;
+		//если дошли до завершающих состояний, возвращаем 1, если дошли до а, 2, если дошли до b
+		if(part->cur_x == a){
+			part->is_end = 1;
+			return 1;
+		}
+		else if(part->cur_x == b){
+			part->is_end = 1;
+			return 2;
+		}
 	}
 	return 0;
-
 }
 
 
 int main(int argc, char **argv){
 
-	srand(time(NULL));
 	struct timeval begin, end;
 
 	FILE *f = fopen("stats.txt", "a");
@@ -67,29 +68,31 @@ int main(int argc, char **argv){
 		particles[i].is_end = 0;
 	}
 
+	srand(time(NULL));
+	uint* seed = (uint*)malloc(sizeof(uint)*N);
+	for(int i = 0; i < N; ++i) {
+		seed[i] = rand();
+	}
+
 	omp_set_num_threads(P);
-	omp_lock_t lock;
 	omp_init_lock(&lock);
 
 	//начинаем подсчет времени
 	assert(gettimeofday(&begin, NULL) == 0);
 
-
 	//захватывать lock будем только N раз, когда каждая частица завершила свое блуждание
 	#pragma omp parallel for
-	for(int i =0; i < N; ++i){
-		while(!particles[i].is_end){
-			int res = step(a, b, p, &particles[i]);
-			if (res == 1) {
-				omp_set_lock(&lock);
-				frequency_a ++;
-				omp_unset_lock(&lock);
-			}
-			else if(res == 2){
-				omp_set_lock(&lock);
-				frequency_b ++;
-				omp_unset_lock(&lock);
-			}
+	for(int i =0; i < N; i++){
+		int res = step(a, b, p, &particles[i], seed[i]);
+		if(res == 1){
+			omp_set_lock(&lock);
+			frequency_a ++;
+			omp_unset_lock(&lock);
+		}
+		else if(res == 2){
+			omp_set_lock(&lock);
+			frequency_b ++;
+			omp_unset_lock(&lock);
 		}
 	}
 
