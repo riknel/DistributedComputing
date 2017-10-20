@@ -112,5 +112,7 @@ int main(int argc, char **argv){
 
 	fprintf(f, "%f, %f, %f, %d, %d, %d, %d, %f, %d\n", probability_b, mean_time_walk, program_time, a, b, x, N, p, P);
 	fclose(f);
+	free(particles);
+	free(seed);
 	return 0;
 }
