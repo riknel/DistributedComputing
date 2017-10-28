@@ -176,7 +176,7 @@ void* sort_args_void(void* args_){
 void sort_parallel(int* array, int* copy_array, int left, int right, int m) {
     int n  = right - left + 1;
 
-    if(n < m) {
+    if(n <= m) {
         qsort(array + left, n, sizeof(int), comp);
     }
     else {
