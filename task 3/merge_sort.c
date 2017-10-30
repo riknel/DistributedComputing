@@ -178,6 +178,7 @@ void sort_parallel(int* array, int* copy_array, int left, int right, int m) {
 
     if(n <= m) {
         qsort(array + left, n, sizeof(int), comp);
+        // memcpy(array + left, copy_array + left, sizeof(int) * n);
     }
     else {
 
@@ -262,13 +263,13 @@ int main(int argc, char **argv){
 
   //проверка на корректность
   for (int i = 0; i < n-1;i++){
-    assert(copy_array[i] <= copy_array[i+1]);
+    assert(array[i] <= array[i+1]);
   }
   double program_time = ((end.tv_sec - begin.tv_sec) * 1000000u + end.tv_usec - begin.tv_usec) / 1.e6;
 
   fprintf(f_data, "\n");
   for (int i = 0; i < n; ++i) {
-    fprintf(f_data, "%d ", copy_array[i]);
+    fprintf(f_data, "%d ", array[i]);
   }
   fprintf(f_data, "\n\n");
 

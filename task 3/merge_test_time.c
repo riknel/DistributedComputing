@@ -1,9 +1,3 @@
-
-
-
-
-
-
 #include <stdio.h>
 #include <omp.h>
 #include <stdlib.h>
@@ -330,7 +324,7 @@ int main(int argc, char **argv){
 
     //проверка на корректность
     for (int i = 0; i < n-1;i++){
-      assert(copy_array[i] <= copy_array[i+1]);
+      assert(array[i] <= array[i+1]);
     }
 
     double program_time = ((end.tv_sec - begin.tv_sec) * 1000000u + end.tv_usec - begin.tv_usec) / 1.e6;
