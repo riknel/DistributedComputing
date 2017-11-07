@@ -482,9 +482,7 @@ int main(int argc, char * argv[]) {
     args.pu = pu;
     args.pd = pd;
 
-    pthread_t thread;
-    pthread_create(&thread, NULL, walk_void_args, &args);
-    pthread_join(thread, NULL);
+    walk_void_args(&args);
 
     MPI_Finalize();
     return 0;
