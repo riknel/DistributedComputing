@@ -70,8 +70,8 @@ void walk(int rang, int count_proc, int l, int a, int b, int N) {
 //    если завершились, то каждый процесс для каждой точки из своего квадрата подсчитывает нужный вектор
     int** mask = (int**)malloc(l*sizeof(int*));
     for(int i = 0; i < l; ++i) {
-        mask[i] = (int*)malloc(l*N*sizeof(int));
-        for(int j = 0; j < l*N; ++j) {
+        mask[i] = (int*)malloc(l*count_proc*sizeof(int));
+        for(int j = 0; j < l*count_proc; ++j) {
             mask[i][j] = 0;
         }
     }
@@ -94,13 +94,13 @@ void walk(int rang, int count_proc, int l, int a, int b, int N) {
             //выразим координаты точки на торе через координаты его узла и координаты точки в узле
             int general_x = rang_x * l + j;
             int general_y = rang_y * l + i;
-            int line_length = l * N * a;
+            int line_length = l * count_proc * a;
 
             //находим насколько нужно сдвитнуь каретку
-            int place = general_y * line_length + general_x * N;
+            int place = general_y * line_length + general_x * count_proc;
 
             MPI_File_set_view(f_bin, place*sizeof(int), MPI_INT, MPI_INT, "native", MPI_INFO_NULL);
-            MPI_File_write(f_bin , &mask[i][j * N], N,  MPI_INT, MPI_STATUS_IGNORE);
+            MPI_File_write(f_bin , &mask[i][j * count_proc], count_proc,  MPI_INT, MPI_STATUS_IGNORE);
         }
 
     }
