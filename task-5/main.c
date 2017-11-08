@@ -105,7 +105,7 @@ int check_bounds(particle* part, int l) {
 //функция, вставляющая в массив particles  from_len элементов из массива from
 void insert(particle* particles, int* particles_count, int* particles_real_len, particle* from, int* from_len){
     for(int i = 0; i < (*from_len); ++i) {
-        if (particles_count >= particles_real_len) {
+        if (*particles_count >= *particles_real_len) {
             (*particles_real_len) = 2*(*particles_real_len);
             particles = (particle*) realloc(particles, (*particles_real_len) * sizeof(particle));
         }
