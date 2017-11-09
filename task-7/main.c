@@ -67,14 +67,9 @@ void walk(int rang, int count_proc, int l, int a, int b, int N) {
         particles[i].r = rand_r(&seed) % (a * b);
     }
 
-//    если завершились, то каждый процесс для каждой точки из своего квадрата подсчитывает нужный вектор
-    int** mask = (int**)malloc(l*sizeof(int*));
-    for(int i = 0; i < l; ++i) {
-        mask[i] = (int*)malloc(l*count_proc*sizeof(int));
-        for(int j = 0; j < l*count_proc; ++j) {
-            mask[i][j] = 0;
-        }
-    }
+    int* mask = (int*)malloc(l*l*count_proc*sizeof(int));
+    for (int i = 0; i < l * l * count_proc; i++)
+        mask[i] = 0;
 
     MPI_File f_bin;
     MPI_File_delete("data.bin", MPI_INFO_NULL);
@@ -85,31 +80,25 @@ void walk(int rang, int count_proc, int l, int a, int b, int N) {
         int part_x = particles[i].x;
         int part_y = particles[i].y;
         int part_r = particles[i].r;
-        mask[part_y][part_x * count_proc + part_r] += 1;
+        mask[part_y * l * count_proc + part_x * count_proc + part_r] += 1;
     }
 
-    //теперь каждый процесс выводит в файл слепок своей области
-    for (int i = 0; i < l; ++i) {
-        for(int j = 0; j < l; ++j) {
-            //выразим координаты точки на торе через координаты его узла и координаты точки в узле
-            int general_x = rang_x * l + j;
-            int general_y = rang_y * l + i;
-            int line_length = l * count_proc * a;
+    MPI_Aint intex;
+    MPI_Aint e;
+    MPI_Type_get_extent(MPI_INT, &e, &intex);
 
-            //находим насколько нужно сдвитнуь каретку
-            int place = general_y * line_length + general_x * count_proc;
+    MPI_Datatype view;
+    MPI_Type_vector(l, l * count_proc, l * a * count_proc, MPI_INT, &view);
+    MPI_Type_commit(&view);
 
-            MPI_File_set_view(f_bin, place*sizeof(int), MPI_INT, MPI_INT, "native", MPI_INFO_NULL);
-            MPI_File_write(f_bin , &mask[i][j * count_proc], count_proc,  MPI_INT, MPI_STATUS_IGNORE);
-        }
+    int offset = (rang_x * l + rang_y * a * l * l) * count_proc;
+    MPI_File_set_view(f_bin, offset * sizeof(int), MPI_INT, view, "native", MPI_INFO_NULL);
 
-    }
+    MPI_File_write(f_bin, mask, l * l * count_proc, MPI_INT, MPI_STATUS_IGNORE);
+    MPI_Type_free(&view);
 
     MPI_File_close(&f_bin);
 
-    for (int i=0;i < l; i++) {
-        free(mask[i]);
-    }
     free(mask);
 
     //заканчиваем подсчет времени
